@@ -1,0 +1,62 @@
+{
+  "tier1_mbb": [
+    "McKinsey", "맥킨지", "McKinsey & Company",
+    "BCG", "보스턴컨설팅", "Boston Consulting Group",
+    "Bain", "베인", "Bain & Company"
+  ],
+  "tier2_research_intensive": {
+    "consulting": [
+      "Kearney", "커니", "A.T. Kearney",
+      "Roland Berger", "롤랜드버거",
+      "Oliver Wyman", "올리버와이만",
+      "L.E.K.", "LEK", "L.E.K. Consulting",
+      "Arthur D. Little", "ADL"
+    ],
+    "big4_strategy": [
+      "Monitor Deloitte", "모니터딜로이트",
+      "Strategy&", "스트래티지앤",
+      "EY-Parthenon", "파르테논",
+      "PwC Strategy", "KPMG Strategy"
+    ],
+    "pe_vc": [
+      "KKR",
+      "Blackstone", "블랙스톤",
+      "Carlyle", "칼라일",
+      "Bain Capital", "베인캐피탈",
+      "MBK Partners", "MBK파트너스",
+      "IMM Investment", "IMM인베스트먼트",
+      "Stic Investments", "스틱인베스트먼트",
+      "Hahn & Company", "한앤컴퍼니",
+      "Affirma Capital"
+    ],
+    "ib": [
+      "Goldman Sachs", "골드만삭스",
+      "Morgan Stanley", "모건스탠리",
+      "JP Morgan", "JPMorgan", "제이피모건",
+      "BofA Securities", "Bank of America",
+      "Citi", "Citigroup", "씨티",
+      "Credit Suisse", "UBS",
+      "Deutsche Bank", "도이치뱅크",
+      "Samsung Securities", "삼성증권",
+      "Mirae Asset", "미래에셋"
+    ]
+  },
+  "tier3_research_related": {
+    "think_tanks": [
+      "한국개발연구원", "KDI",
+      "산업연구원", "KIET",
+      "한국은행", "BOK",
+      "한국투자공사", "KIC",
+      "대외경제정책연구원", "KIEP",
+      "한국조세재정연구원", "KIPF",
+      "삼성경제연구소", "SERI",
+      "LG경제연구원", "현대경제연구원"
+    ],
+    "keywords": [
+      "전략기획", "Strategy", "Research", "리서치", "분석",
+      "Consulting", "컨설팅", "전략컨설팅",
+      "Strategy Consulting", "Management Consulting", "경영컨설팅",
+      "기획팀", "전략팀"
+    ]
+  }
+}

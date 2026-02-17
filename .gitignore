@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Sensitive data - 전체 data 디렉토리 제외
+data/
+
+# Claude - 로컬 설정만 제외, skills는 포함
+.claude/settings.local.json
+
+# OS
+.DS_Store
