@@ -1,18 +1,18 @@
 ---
 name: ra-recruiting
-description: BCG RA 채용 프로세스 전체 실행. 공고 포스팅 → 이력서 스크리닝 → 면접 일정 조율을 단계별로 진행하며, 각 Phase 사이에 진행 여부를 확인합니다.
+description: BCG RA 채용 프로세스 전체 실행. 공고 포스팅 → 이력서 스크리닝 → 면접 일정 조율 → 최종 합격 통보를 단계별로 진행하며, 각 Phase 사이에 진행 여부를 확인합니다.
 user_invocable: true
 ---
 
 # RA 채용 프로세스 전체 실행
 
-이 스킬은 BCG RA 채용의 3개 Phase를 직접 실행합니다.
+이 스킬은 BCG RA 채용의 4개 Phase를 직접 실행합니다.
 개별 Phase 스킬을 Skill 도구로 호출하지 않고, 아래 워크플로우를 인라인으로 수행합니다.
 
 ## 전체 흐름
 
 ```
-Phase 1 (공고 포스팅) → 배치 확인 → Phase 2 (이력서 스크리닝) → 배치 확인 → Phase 3 (면접 일정 조율)
+Phase 0 (프로젝트 설정) → 배치 확인 → Phase 1 (공고 포스팅) → 배치 확인 → Phase 2 (이력서 스크리닝) → 배치 확인 → Phase 3 (면접 일정 조율) → 배치 확인 → Phase 4 (최종 합격 통보)
 ```
 
 ## 실행 규칙
@@ -25,17 +25,79 @@ Phase 1 (공고 포스팅) → 배치 확인 → Phase 2 (이력서 스크리닝
 
 ---
 
+# Phase 0: 프로젝트 초기 설정
+
+## Step 1: 기존 설정 확인
+
+1. `data/project_settings.json` 파일이 존재하면 Read 도구로 로드하여 기존 값을 표시합니다.
+2. 존재하지 않으면 빈 상태에서 시작합니다.
+
+## Step 2: 프로젝트 정보 수집 (AskUserQuestion 배치)
+
+AskUserQuestion을 활용하여 아래 정보를 수집합니다 (최대 4개 질문씩 배치):
+
+**배치 1:**
+1. **프로젝트 주제** (`project_topic`) — 예: "국내 금융 지주사 성장 전략"
+2. **근무 기간 시작일** (`work_start`) — 예: "2026-02-27"
+3. **근무 기간 종료일** (`work_end`) — 예: "2026-04-03"
+4. **지원 마감일** (`application_due`) — 예: "2026-02-18"
+
+**배치 2:**
+1. **채용 RA 인원** (`ra_count`) — 예: "2명"
+2. **Client 명** (`client_name`) — 예: "KB금융지주"
+3. **Case 명** (`case_name`) — 예: "KB Financial Group Growth Strategy"
+4. **Case code** (`case_code`) — 예: "SEO-2026-001"
+
+**배치 3:**
+1. **P/PL** (`partner_pl`) — 예: "홍길동 Partner / 김철수 PL"
+2. **지원 이메일 주소** (`email_addresses`) — To 주소 (CC는 항상 Seoul.RAApplication@bcg.com)
+
+## Step 3: 확인 및 저장
+
+1. 수집된 정보를 표 형태로 사용자에게 보여주고 AskUserQuestion으로 확인합니다.
+2. 수정 필요 시 해당 항목만 재수집합니다.
+3. `data/project_settings.json`에 저장합니다.
+
+### project_settings.json 스키마
+
+```json
+{
+  "project_topic": "프로젝트 주제",
+  "application_due": "YYYY-MM-DD",
+  "work_start": "YYYY-MM-DD",
+  "work_end": "YYYY-MM-DD",
+  "email_addresses": "[이메일1], [이메일2]",
+  "ra_count": 2,
+  "client_name": "Client명",
+  "case_name": "Case명",
+  "case_code": "Case code",
+  "partner_pl": "P/PL"
+}
+```
+
+---
+
+# Phase 0 → Phase 1 전환: 배치 확인
+
+Phase 0 완료 후, 다음 사항을 **하나의 AskUserQuestion**으로 통합하여 확인합니다:
+
+1. **텍스트로 Phase 0 결과 요약**을 보여줍니다:
+   - 저장된 프로젝트 설정 요약 (주제, 기간, 케이스 정보, 채용 인원)
+
+2. **AskUserQuestion** (하나의 질문):
+   - "Phase 1 (채용 공고 포스팅)으로 진행할까요?"
+   - 옵션: "Phase 1로 진행" / "여기서 중단"
+   - 중단 선택 시: 진행 상황 요약 후 종료. 나중에 `/phase1-ra-job-posting`으로 이어서 가능함을 안내.
+
+---
+
 # Phase 1: 채용 공고 포스팅
 
-## Step 1: 프로젝트 정보 수집
+## Step 1: 프로젝트 설정 로드
 
-1. `data/project_settings.json` 파일이 존재하면 읽어서 기존 설정을 로드합니다.
-2. 사용자에게 프로젝트 정보를 확인합니다:
-   - **프로젝트 주제** (예: "국내 금융 지주사 성장 전략")
-   - **근무 기간** (시작일 ~ 종료일)
-   - **Application Due** (지원 마감일)
-   - **지원 이메일 주소** (To, CC는 항상 Seoul.RAApplication@bcg.com)
-3. 확인된 정보를 `data/project_settings.json`에 저장합니다.
+1. `data/project_settings.json`을 Read 도구로 로드합니다.
+   - Phase 0에서 이미 저장했으므로 파일이 반드시 존재합니다.
+2. 로드된 프로젝트 설정을 표시합니다 (주제, 근무 기간, 마감일, 이메일 등)
 
 ## Step 2: 채용 공고 생성
 
@@ -112,7 +174,7 @@ Phase 1 완료 후, 다음 사항을 **하나의 AskUserQuestion**으로 통합�
 
 ## 사전 조건
 
-- `data/project_settings.json`이 존재해야 함 (Phase 1에서 생성)
+- `data/project_settings.json`이 존재해야 함 (Phase 0에서 생성)
 - Gmail MCP 플러그인이 활성화되어 있어야 함
 
 ## Step 1: 프로젝트 정보 로드
@@ -531,9 +593,205 @@ Phase 2 완료 후, 다음 사항을 **하나의 AskUserQuestion**으로 통합�
 
 ---
 
+# Phase 3 → Phase 4 전환: 배치 확인
+
+Phase 3 완료 후, 다음 사항을 **하나의 AskUserQuestion**으로 통합하여 확인합니다:
+
+1. **텍스트로 Phase 3 결과 요약**을 보여줍니다:
+   - 면접 완료자 목록 (`status: "meet_sent"` 인원)
+   - 각 후보자의 이름, 학교, 면접 일시
+
+2. **AskUserQuestion** (multiSelect: false):
+   - "Phase 4 (최종 합격 통보)로 진행할까요?"
+   - 옵션: "Phase 4로 진행" / "여기서 중단"
+   - 중단 선택 시: 진행 상황 요약 후 종료. 나중에 `/phase4-ra-final-notification`으로 이어서 가능함을 안내.
+
+---
+
+# Phase 4: 최종 합격 통보
+
+## 사전 조건
+
+- `data/interview_schedule.json`이 존재해야 함 (Phase 3에서 생성)
+- `data/project_settings.json`이 존재해야 함 (Phase 0에서 생성)
+- Gmail 플러그인 인증이 완료되어 있어야 함
+
+## 플러그인 경로
+
+| 플러그인 | 경로 |
+|---------|------|
+| Gmail | `~/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail` |
+
+### Step 1: 데이터 로드 및 최종 합격자 선정
+
+1. `data/interview_schedule.json`을 Read 도구로 로드합니다.
+2. `status: "meet_sent"` 후보자 목록을 표시합니다.
+3. AskUserQuestion (multiSelect: true)으로 최종 합격자를 선정합니다:
+   - "최종 합격자를 선택해주세요."
+   - 옵션: 각 후보자 이름 + 학교 (예: "유주미 (서울대)", "고예빈 (연세대)")
+4. 합격자 목록을 확정합니다.
+
+### Step 2: Resume PDF 분석 및 정보 추출
+
+각 합격자의 `pdf_path`에서 Resume PDF를 Read 도구로 읽고 다음 정보를 추출합니다:
+
+- **생년월일** (HR 이메일용) — 형식: YYYY.MM.DD
+- **영문 주소** (HR 이메일용) — 없으면 `null`
+- **대학교, 전공, 학점** (파트너 이메일용) — 학점은 X.XX/Y.YY 형식
+- **핵심 경력 요약 3줄** (파트너 이메일용):
+  - Line 1: 컨설팅/RA 경험 (있으면)
+  - Line 2: 주요 인턴 경력
+  - Line 3: 기타 관련 경험 (학회, 동아리 등)
+
+추출 결과를 사용자에게 표 형태로 보여주고 AskUserQuestion으로 수정 여부를 확인합니다.
+
+### Step 3: 합격자 통보 이메일 발송
+
+1. Step 2에서 추출한 생년월일·영문주소의 누락 여부를 후보자별로 확인합니다.
+2. 각 합격자에게 **합격 통보 이메일**을 발송합니다:
+   - **Subject**: `BCG RA 최종 합격 안내`
+   - **본문 구성**:
+     - 합격 축하 인사
+     - "차주 중 HR에서 자세한 입사 방법을 안내드릴 예정"
+     - (생년월일 또는 영문주소 중 누락 항목이 있을 경우) 해당 정보 회신 요청
+   - **누락 항목에 따른 본문 분기**:
+     - **둘 다 있음** → 요청 문구 없이 합격 축하만
+     - **생년월일만 없음** → "채용 절차 진행을 위해 생년월일을 회신해주시면 감사하겠습니다."
+     - **영문주소만 없음** → "채용 절차 진행을 위해 영문 주소를 회신해주시면 감사하겠습니다."
+     - **둘 다 없음** → "채용 절차 진행을 위해 생년월일과 영문 주소를 회신해주시면 감사하겠습니다."
+3. 발송 커맨드:
+   ```bash
+   GMAIL_SCRIPTS=~/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail/scripts
+
+   uv run python "$GMAIL_SCRIPTS/send_message.py" \
+     --account personal --to "{후보자이메일}" \
+     --subject "BCG RA 최종 합격 안내" \
+     --body "{합격 통보 본문}"
+   ```
+4. `data/final_notification.json`에 상태 기록:
+   - `candidate_notified: true`
+   - 누락 항목이 있으면 `missing_info_status: "requested"`, 없으면 `missing_info_status: "complete"`
+   - `missing_info_items: ["birth_date", "english_address"]` (누락 항목 목록)
+
+### Step 4: 이메일 작성
+
+#### 4-A. HR 채용 요청 이메일 (HTML)
+
+- **Subject**: `RA 신규 채용 요청`
+- **형식**: HTML (`--html` 플래그 사용)
+- **첨부**: 모든 합격자의 Resume PDF
+- **Template 치환 규칙**:
+  - `{}명` → 합격자 수
+  - 근무 기간 → `project_settings.json`의 `work_start ~ work_end` (예: "2/27~4/3, 약 36일")
+  - RA생년월일 → Resume에서 추출 (예: "최주연(2001.02.15), 도연희(2000.06.05)")
+  - Client 명 → `project_settings.json`의 `client_name`
+  - Case 명 → `project_settings.json`의 `case_name`
+  - Case code → `project_settings.json`의 `case_code`
+  - P/PL → `project_settings.json`의 `partner_pl`
+  - RA영문 주소 → Resume에 있으면 "Resume 내 포함 완료", 없으면 "확인 중 (후보자 회신 대기)"
+
+**생년월일 또는 영문주소 미확보 후보자가 있으면**: HR 이메일은 보류하고 `hr_email_status: "pending_info"` 설정. 모든 누락 정보 확보 시 daily-ra-status에서 자동 발송됩니다.
+
+#### 4-B. 파트너 승인 이메일 (plain text)
+
+- **Subject**: `RA 채용 승인 요청`
+- **형식**: plain text (기본)
+- **첨부**: 모든 합격자의 Resume PDF
+- **본문 형식**:
+
+```
+안녕하세요, RA 채용 승인을 요청드립니다.
+
+{N}명의 RA를 {근무시작일}부터 채용하고자 합니다.
+
+[후보자 프로필]
+
+{이름}
+{대학교} {전공} ({학점 X.XX/Y.YY})
+{핵심 경력 1}
+{핵심 경력 2}
+{핵심 경력 3}
+
+---
+
+{다음 후보자 반복}
+
+검토 후 승인 부탁드립니다.
+감사합니다.
+```
+
+### Step 5: 사용자 미리보기 및 발송 확인
+
+1. HR 이메일과 파트너 이메일 각각의 미리보기를 사용자에게 표시합니다.
+2. AskUserQuestion으로 수정 필요 여부를 확인합니다:
+   - "이메일 내용을 확인해주세요. 수정이 필요한가요?"
+   - 옵션: "수정 없이 발송" / "수정 필요"
+3. 승인 후 Gmail 플러그인으로 `kim.taehyun@bcg.com`에 발송합니다:
+
+```bash
+GMAIL_SCRIPTS=~/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail/scripts
+
+# HR 이메일 (HTML + 첨부) — 영문 주소 미확보 시 보류
+uv run python "$GMAIL_SCRIPTS/send_message.py" \
+  --account personal \
+  --to "kim.taehyun@bcg.com" \
+  --subject "RA 신규 채용 요청" \
+  --body "{HR 이메일 HTML}" \
+  --html \
+  --attach "{pdf1},{pdf2}"
+
+# 파트너 이메일 (plain text + 첨부)
+uv run python "$GMAIL_SCRIPTS/send_message.py" \
+  --account personal \
+  --to "kim.taehyun@bcg.com" \
+  --subject "RA 채용 승인 요청" \
+  --body "{파트너 이메일 본문}" \
+  --attach "{pdf1},{pdf2}"
+```
+
+**누락 정보(생년월일/영문주소) 미확보 시**: 파트너 이메일만 발송하고, HR 이메일은 보류 안내.
+
+### Step 6: 상태 저장
+
+`data/final_notification.json`을 생성/업데이트합니다:
+
+```json
+{
+  "candidates": [
+    {
+      "name": "이름",
+      "email": "이메일",
+      "school": "대학교",
+      "major": "전공",
+      "gpa": "학점",
+      "birth_date": "YYYY.MM.DD or null",
+      "english_address": "영문 주소 or null",
+      "missing_info_status": "complete|requested|received",
+      "missing_info_items": [],
+      "candidate_notified": true,
+      "profile_summary": ["경력1", "경력2", "경력3"],
+      "pdf_path": "data/resumes/파일명.pdf"
+    }
+  ],
+  "hr_email_status": "sent|pending_info",
+  "partner_email_status": "sent|not_sent",
+  "hr_email_sent_at": "ISO timestamp or null",
+  "partner_email_sent_at": "ISO timestamp or null"
+}
+```
+
+## 주의사항 (Phase 4)
+
+- 이메일 발송 전 반드시 사용자 확인을 받을 것
+- HR 이메일은 보안상 `kim.taehyun@bcg.com`으로만 발송 (사용자가 직접 HR/파트너에게 전달)
+- Resume에 포함된 개인정보(생년월일, 주소 등) 처리 시 주의
+- 누락 정보(생년월일/영문주소) 미확보 시 HR 이메일은 보류하고, daily-ra-status에서 자동 감지 후 발송
+
+---
+
 # 중단 시 처리
 
 사용자가 중간에 중단을 선택한 경우:
 
 1. 현재까지 완료된 Phase와 산출물을 정리하여 보고합니다.
-2. 나중에 개별 스킬(`/phase1-ra-job-posting`, `/phase2-ra-resume-screening`, `/phase3-ra-interview-setting`)로 이어서 진행할 수 있음을 안내합니다.
+2. 나중에 개별 스킬(`/phase1-ra-job-posting`, `/phase2-ra-resume-screening`, `/phase3-ra-interview-setting`, `/phase4-ra-final-notification`)로 이어서 진행할 수 있음을 안내합니다.

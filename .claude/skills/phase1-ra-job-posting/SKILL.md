@@ -10,15 +10,15 @@ user_invocable: true
 
 ## 워크플로우
 
-### Step 1: 프로젝트 정보 수집
+### 사전 조건
 
-1. `data/project_settings.json` 파일이 존재하면 읽어서 기존 설정을 로드합니다.
-2. 사용자에게 프로젝트 정보를 확인합니다:
-   - **프로젝트 주제** (예: "국내 금융 지주사 성장 전략")
-   - **근무 기간** (시작일 ~ 종료일)
-   - **Application Due** (지원 마감일)
-   - **지원 이메일 주소** (To, CC는 항상 Seoul.RAApplication@bcg.com)
-3. 확인된 정보를 `data/project_settings.json`에 저장합니다.
+- `data/project_settings.json`이 존재해야 함 (Phase 0에서 생성)
+
+### Step 1: 프로젝트 설정 로드
+
+1. `data/project_settings.json`을 Read 도구로 로드합니다.
+   - 파일이 존재하지 않으면 "/phase0-ra-project-setup을 먼저 실행해주세요." 안내 후 종료
+2. 로드된 프로젝트 설정을 표시합니다 (주제, 근무 기간, 마감일, 이메일 등)
 
 ### Step 2: 채용 공고 생성
 

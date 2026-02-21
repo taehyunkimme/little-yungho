@@ -19,26 +19,29 @@ BCG RA(Research Analyst) 인턴 채용 프로세스 전체를 Claude Code 스킬
 - Understand the strategic consulting context; communicate from the perspective of reducing manual work through automation
 - Skill content remains in Korean
 
-## RA 선발 파이프라인 (3 Phase) + 자동화
+## RA 선발 파이프라인 (5 Phase) + 자동화
 
-전체 프로세스는 3개 Claude Skill로 구성되며, `/스킬명` 명령으로 각 Phase를 실행:
+전체 프로세스는 5개 Claude Skill로 구성되며, `/스킬명` 명령으로 각 Phase를 실행:
 
 | Phase | 스킬 | 역할 |
 |-------|------|------|
+| 0 | `/phase0-ra-project-setup` | 프로젝트 초기 설정 (주제, 기간, 케이스 정보, 채용 인원) |
 | 1 | `/phase1-ra-job-posting` | 채용 공고 작성 및 포스팅 (네이버 카페, 카카오톡) |
 | 2 | `/phase2-ra-resume-screening` | 이력서 수집, 자격 필터, 종합 평가 |
 | 3 | `/phase3-ra-interview-setting` | 면접 대상자 일정 조율 |
+| 4 | `/phase4-ra-final-notification` | 최종 합격자 HR 채용 요청 및 파트너 승인 이메일 작성 |
 | Auto | `/daily-ra-status` | 일일 Gmail 체크 + Slack 현황 대시보드 (GitHub Actions 자동화) |
 
 ## 데이터 디렉토리 스키마 (`data/`)
 
 | 파일 | 설명 | 생성 Phase |
 |------|------|-----------|
-| `project_settings.json` | 프로젝트 기본 정보 (주제, 기간, 마감일, 이메일) | Phase 1 |
+| `project_settings.json` | 프로젝트 기본 정보 (주제, 기간, 마감일, 이메일) + 케이스 정보 (Client, Case, P/PL) + 채용 인원 | Phase 0 |
 | `posting_history.json` | 포스팅 이력 로그 | Phase 1 |
 | `screening_results.json` | 이력서 스크리닝 결과 | Phase 2 |
 | `assignment_results.json` | 과제 평가 결과 | Phase 3 |
-| `interview_schedule.json` | 면접 일정 | Phase 4 |
+| `interview_schedule.json` | 면접 일정 | Phase 3 |
+| `final_notification.json` | 최종 합격 통보 상태 및 후보자 정보 | Phase 4 |
 | `automation_config.json` | 일일 자동 체크 설정 (on/off 토글, 마지막 체크 시간) | Auto |
 | `naver_cookies.json` | 네이버 로그인 세션 쿠키 (gitignored) | Phase 1 |
 | `resumes/` | 다운로드된 이력서 PDF (gitignored) | Phase 2 |
@@ -51,7 +54,12 @@ BCG RA(Research Analyst) 인턴 채용 프로세스 전체를 Claude Code 스킬
   "application_due": "YYYY-MM-DD",
   "work_start": "YYYY-MM-DD",
   "work_end": "YYYY-MM-DD",
-  "email_addresses": "[이메일1], [이메일2]"
+  "email_addresses": "[이메일1], [이메일2]",
+  "ra_count": 2,
+  "client_name": "Client명",
+  "case_name": "Case명",
+  "case_code": "Case code",
+  "partner_pl": "P/PL"
 }
 ```
 

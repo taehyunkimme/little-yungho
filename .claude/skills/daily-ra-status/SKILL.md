@@ -76,6 +76,41 @@ uv run python "$GMAIL_SCRIPTS/read_message.py" \
   --id {message_id} --json
 ```
 
+### Step 3.5: 합격자 누락 정보 회신 확인
+
+1. `data/final_notification.json`을 Read 도구로 로드합니다.
+   - 파일이 존재하지 않으면 이 단계를 건너뜁니다.
+2. `missing_info_status: "requested"` 후보자가 있는지 확인합니다.
+3. 있으면 각 후보자에 대해 Gmail 검색:
+   ```bash
+   uv run python "$GMAIL_SCRIPTS/list_messages.py" \
+     --account personal \
+     --query "subject:BCG RA 최종 합격 from:{후보자이메일} after:{last_checked_date_YYYY/MM/DD}" \
+     --full --json
+   ```
+4. 회신 발견 시:
+   - `missing_info_items`에 따라 이메일 본문에서 생년월일, 영문주소 또는 둘 다 추출합니다.
+   - `data/final_notification.json`을 업데이트합니다:
+     - `birth_date` → 추출된 생년월일 (해당 시)
+     - `english_address` → 추출된 영문 주소 (해당 시)
+     - `missing_info_status` → `"received"`
+     - `missing_info_items` → `[]`
+   - **모든 후보자의 누락 정보가 확보되면** (`"requested"` 상태 후보자가 0명):
+     - HR 채용 요청 이메일을 자동 작성합니다.
+     - `data/project_settings.json`에서 근무 기간 정보를 로드합니다.
+     - HR 이메일 HTML을 생성하고 모든 합격자의 Resume PDF를 첨부합니다.
+     - `kim.taehyun@bcg.com`으로 발송합니다:
+       ```bash
+       uv run python "$GMAIL_SCRIPTS/send_message.py" \
+         --account personal \
+         --to "kim.taehyun@bcg.com" \
+         --subject "RA 신규 채용 요청" \
+         --body "{HR 이메일 HTML}" \
+         --html \
+         --attach "{pdf1},{pdf2}"
+       ```
+     - `data/final_notification.json`의 `hr_email_status`를 `"sent"`로, `hr_email_sent_at`을 현재 시간으로 업데이트합니다.
+
 ### Step 4: 현황 집계
 
 `data/` 디렉토리의 JSON 파일들을 Read 도구로 로드하여 전체 현황을 집계합니다.
@@ -119,6 +154,12 @@ Webhook URL로 포맷된 메시지를 전송합니다.
 • 총 지원자: {N}명 {신규가 있으면 "(신규 +N)"}
 • 스크리닝 통과: {N}명
 • 면접 확정(meet_sent): {N}명 | 대기(pending): {N}명
+
+📬 합격자 정보 확인 현황
+{final_notification.json이 존재하고 requested 상태 후보자가 있으면}
+• {이름} — 회신 완료 ✅ (missing_info_items: [])
+• {이름} — 대기 중 ⏳ (missing_info_items: ["birth_date", "english_address"])
+{해당 없으면 이 섹션 생략}
 
 ⚡ 필요 조치
 {조치 항목이 있으면 나열}
