@@ -16,10 +16,10 @@ user_invocable: true
 
 ## 플러그인 경로
 
-| 플러그인 | 경로 |
-|---------|------|
+| 플러그인        | 경로                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
 | Google Calendar | `~/.claude/plugins/marketplaces/team-attention-plugins/plugins/google-calendar/skills/google-calendar` |
-| Gmail | `~/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail` |
+| Gmail           | `~/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail`                     |
 
 ## 워크플로우
 
@@ -124,24 +124,42 @@ user_invocable: true
      --meet \
      --json
    ```
+
    - 제목은 반드시 `"RA Interview - {지원자이름}님"` 형식으로 통일합니다.
    - `--meet` 플래그로 Google Meet 링크가 자동 생성됩니다.
    - `--attendees`에 지원자 이메일을 포함하면 Google Calendar 초대가 자동 발송됩니다.
 3. 생성된 이벤트의 `meet_link`를 `data/interview_schedule.json`에 저장합니다.
-4. Gmail 플러그인으로 각 지원자에게 확정 안내 이메일을 발송합니다:
+4. Gmail 플러그인으로 **2종류 이메일**을 발송합니다:
+
+   **A. 지원자에게 → 확정 안내 (첨부파일 없음)**
    - 확정된 면접 일시
    - Google Meet 링크
    - 준비 사항 안내
    - 일정 변경 시 연락 방법
-   - **지원자의 이력서 PDF를 첨부** (`data/interview_schedule.json`의 `pdf_path` 참조)
+
    ```bash
    uv run python {gmail_plugin_path}/scripts/send_message.py \
      --account personal \
      --to "{지원자이메일}" \
      --subject "BCG RA 면접 확정 안내" \
-     --body "{이메일 본문}" \
-     --attach "{pdf_path}"
+     --body "{이메일 본문}"
    ```
+
+   **B. 면접관(사용자)에게 → 면접 준비 통합 이메일 1건 (이력서 전원 첨부)**
+   - 수신: `project_settings.json`의 사용자 본인 이메일
+   - 제목: `RA 면접 준비 - 이력서 첨부`
+   - 본문: 전체 면접 일정표 (이름, 학교, 일시, Meet 링크)
+   - 첨부: 모든 면접 대상자의 이력서 PDF를 한 번에 첨부
+
+   ```bash
+   uv run python {gmail_plugin_path}/scripts/send_message.py \
+     --account personal \
+     --to "{사용자이메일}" \
+     --subject "RA 면접 준비 - 이력서 첨부" \
+     --body "{면접 일정표 본문}" \
+     --attach "{pdf_path1},{pdf_path2},{pdf_path3},..."
+   ```
+
 5. **발송 전 반드시** 이메일 본문을 사용자에게 미리보기로 보여주고 확인을 받습니다.
 6. `data/interview_schedule.json`의 `status`를 `"meet_sent"`로 업데이트합니다.
 

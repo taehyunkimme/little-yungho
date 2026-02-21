@@ -1,0 +1,6 @@
+{
+  "daily_status_active": false,
+  "last_checked_at": null,
+  "slack_webhook_url": "",
+  "slack_channel": "ra-recruiting"
+}

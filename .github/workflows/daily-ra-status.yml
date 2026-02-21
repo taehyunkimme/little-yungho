@@ -1,0 +1,50 @@
+name: Daily RA Status Check
+
+on:
+  schedule:
+    # 23:00 UTC = 08:00 KST (next day)
+    - cron: '0 23 * * *'
+  workflow_dispatch: {}  # Manual trigger for testing
+
+jobs:
+  check-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if automation is active
+        id: check-toggle
+        run: |
+          if [ ! -f data/automation_config.json ]; then
+            echo "Config file not found, skipping"
+            echo "active=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          ACTIVE=$(python3 -c "import json; print(json.load(open('data/automation_config.json'))['daily_status_active'])")
+          echo "active=$ACTIVE" >> $GITHUB_OUTPUT
+          echo "Automation active: $ACTIVE"
+
+      - name: Setup Gmail credentials
+        if: steps.check-toggle.outputs.active == 'True'
+        run: |
+          GMAIL_ACCOUNTS_DIR="$HOME/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail/accounts"
+          mkdir -p "$GMAIL_ACCOUNTS_DIR"
+          echo '${{ secrets.GMAIL_OAUTH_TOKEN }}' > "$GMAIL_ACCOUNTS_DIR/personal.json"
+
+          GMAIL_REFS_DIR="$HOME/.claude/plugins/marketplaces/team-attention-plugins/plugins/gmail/skills/gmail/references"
+          mkdir -p "$GMAIL_REFS_DIR"
+          echo '${{ secrets.GMAIL_CREDENTIALS }}' > "$GMAIL_REFS_DIR/credentials.json"
+
+      - name: Run daily status check
+        if: steps.check-toggle.outputs.active == 'True'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Run the /daily-ra-status skill.
+            Use SLACK_WEBHOOK_URL environment variable for the Slack webhook.
+            Gmail account is "personal".
+            Do NOT ask any questions - just execute the skill autonomously and post the update.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

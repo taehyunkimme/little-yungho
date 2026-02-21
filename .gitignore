@@ -3,8 +3,9 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Sensitive data - 전체 data 디렉토리 제외
+# Sensitive data - 전체 data 디렉토리 제외 (automation config만 예외)
 data/
+!data/automation_config.json
 
 # Claude - 로컬 설정만 제외, skills는 포함
 .claude/settings.local.json
