@@ -21,7 +21,8 @@ BCG RA(Research Analyst) 인턴 채용 프로세스 전체를 Claude Code 스킬
 
 ## RA 선발 파이프라인 (5 Phase) + 자동화
 
-전체 프로세스는 5개 Claude Skill로 구성되며, `/스킬명` 명령으로 각 Phase를 실행:
+전체 프로세스는 5개 Phase와 자동화 스킬로 구성되며, `/스킬명` 명령으로 각 Phase를 실행.
+`/ra-recruiting`으로 Phase 0~4를 순차 실행할 수 있음:
 
 | Phase | 스킬 | 역할 |
 |-------|------|------|
