@@ -10,5 +10,20 @@ data/
 # Claude - 로컬 설정만 제외, skills는 포함
 .claude/settings.local.json
 
+# Resume files (defense-in-depth, even outside data/)
+*.pdf
+resumes/
+
+# Sensitive credentials
+naver_cookies.json
+
+# Sensitive project/applicant data
+screening_results.json
+interview_schedule.json
+final_notification.json
+project_settings.json
+posting_history.json
+assignment_results.json
+
 # OS
 .DS_Store
